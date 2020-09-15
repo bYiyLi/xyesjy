@@ -1,0 +1,870 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8" />
+		<title>校园交易系统</title>
+		<script src="https://apps.bdimg.com/libs/jquery/2.1.4/jquery.min.js">
+		<script src="js/vue.js" type="text/javascript" charset="utf-8"></script>
+		<script src="https://unpkg.com/vue"></script>
+		<script src="https://unpkg.com/vue-router/dist/vue-router.js"></script>
+		<link rel="stylesheet" type="text/css" href="css/index.css"/>
+		<link rel="stylesheet" type="text/css" href="bootstrap-3.3.7-dist/css/bootstrap.min.css"/>
+		<script src="bootstrap-3.3.7-dist/js/bootstrap.min.js" type="text/javascript" charset="utf-8"></script>
+		<script src="https://cdn.staticfile.org/vue-resource/1.5.1/vue-resource.min.js"></script>
+	</head>
+	<body>
+		<div id="app">
+			<div class="head">
+				<div style="margin-left: 20px;">
+					<p style="font-size: 45px;color: #5bc0de;margin-top: 0px;margin-bottom: 0px;">校园二手交易系统</p>
+				</div>
+				<div>
+					
+				</div>
+				<div style="flex: 1;height: 100%;display: flex;">
+					<router-link class="btn btn-info" style="height: 30px;margin: auto 10px auto auto;" to="/shop">购物广场</router-link>
+					<div class="head_r" style="display: flex;" v-if="show_user">
+						<div style="flex: 1;display: flex;">
+							<router-link class="btn btn-info" style="height: 30px;margin: auto 10px auto 0px;" to="/myShop">我的购物</router-link>
+							<router-link class="btn btn-info" style="height: 30px;margin: auto 10px auto 0px;" to="/personal">我的中心</router-link>
+							<div class="btn btn-info" style="height: 30px;margin: auto 100px auto 0px;" v-on:click="exit">退出</div>
+						</div>
+						<p style="margin: auto 50px auto 0px;color: #5bc0de;">欢迎:{{user.name}}</p>
+					</div>
+					<div class="head_r" v-if="!show_user">
+						<router-link class=" btn btn-info sign_in" to="/SignIn">登录</router-link>
+						<router-link class=" btn btn-info register" to="/register">注册</router-link>
+					</div>
+				</div>
+			</div>
+			<div class="content">
+				<div style="width: 100%;height: 120px;"></div>
+				<router-view></router-view>
+			</div>
+		</div>
+	</body>
+	<template id="SignInTem">
+		<div class="SignInBg">
+			<div class="inputInformation">
+				<input type="text" style="margin-top: 95px;" v-model="user" placeholder="学号" />
+				<input type="text" style="margin-top: 19px;" v-model="password" placeholder="密码" />
+				<div class="btn btn-info" style="height: 30px;color: #536375;width: 120px;margin-top: 29px;margin-left: 79px;border-color: #536375;" v-on:click="SigninClick">进入</div>
+			</div>
+		</div>
+	</template>
+	<template id="registerTem">
+		<div class="registerBg">
+			<div class="inputInformation">
+				<input type="text" style="margin-top: 95px;" v-model="user" placeholder="学号" />
+				<input type="text" style="margin-top: 19px;" v-model="name" placeholder="用户名" />
+				<input type="text" style="margin-top: 19px;" v-model="password" placeholder="密码" />
+				<input type="text" style="margin-top: 19px;" v-model="telephone" placeholder="电话" />
+				<input type="text" style="margin-top: 19px;" v-model="school" placeholder="学校" />
+				<input type="text" style="margin-top: 19px;" v-model="college" placeholder="学院" />
+				<input type="text" style="margin-top: 19px;" v-model="department" placeholder="系" />
+				<input type="text" style="margin-top: 19px;" v-model="major" placeholder="专业" />
+				<div class="btn btn-info" style="height: 30px;color: #536375;width: 120px;margin-top: 29px;margin-left: 79px;border-color: #536375;" v-on:click="registerClick">提交</div>
+				<div style="width: 100%;height: 120px"></div>
+			</div>
+		</div>
+	</template>
+	<template id="shopTem">
+		<div>
+			<div class="product-mi container">
+				<div id="selectpro">
+					<li v-on:click="getGoodsList(i)" v-for="i in allType" class="btn">{{i}}</li>
+				</div>
+				<div class="row">
+					<div v-on:click="showGoodsItem(i)" v-for="i in goodsList" class="col-md-3 col-sm-6 col-xs-12">
+						<img  :src="i.image1">
+						<h5>名字：{{i.name}}</h5>
+						<p style="overflow: hidden;text-overflow: ellipsis;white-space: nowrap;">简介：<br>{{i.synopsis}}</p>
+						<p>价格：{{i.price}}</p>
+					</div>
+				</div>
+			</div>
+			<div style="display: flex;margin-top: 3px;">
+				<div class="btn btn-info" style="text-align: center;width: 68px;margin-left: 20%;">上一页</div>
+				<div class="btn btn-info" style="text-align: center;width: 68px;margin-right: 20%;margin-left: auto;">下一页</div>
+			</div>
+			<div class="PurchaseDetails" v-if="tf_show" >
+				<span v-on:click="tf_show=false" class="closee btn">X</span>
+				<div class="cont" style="margin-left: 150px; ">
+
+					<div class="item de" style="width: 80%; ;">
+						<h3>商品信息</h3>
+						<li><span>名称：</span><div class="item-value">{{showItem.name}}</div></li>
+						<li><span>时间：</span><div class="item-value">{{showItem.creatTime}}</div></li>
+						<li><span>价格：</span><div class="item-value">{{showItem.price}}</div></li>
+						<li><span>类型：</span><div class="item-value">{{showItem.type}}</div></li>
+						<li><span>简介：</span>
+							<div class="item-value">{{showItem.synopsis}}</div>
+						</li>
+						<div>
+							<img :src="showItem.image1" >
+							<img :src="showItem.image2" >
+							<img :src="showItem.image3" >
+							<img :src="showItem.image4" >
+							<img :src="showItem.image5" >
+						</div>
+					</div>
+				</div>
+				<div v-on:click="buyGoods" class="btn btn-primary want">购买</div>
+			</div>
+		</div>
+	</template>
+	<template id="personalTem">
+		<div class="personalBg">
+			<div>
+				<div v-on:click="show_personal_change=true" class="btn btn-info" style="position:fixed;bottom: 10%;right: 10%;">修改个人信息</div>
+			</div>
+			<div class="showPersonal">
+				<h2>发布中</h2>
+				<div>
+					<table border="" cellspacing="" cellpadding="">
+						<tr>
+							<th>商品名</th>
+							<th>价格</th>
+							<th>类型</th>
+							<th>操作</th>
+						</tr>
+						<tr v-for="i in createGoods">
+							<td>{{i.name}}</td>
+							<td>{{i.price}}</td>
+							<td>{{i.type}}</td>
+							<td><button type="button" class="btn btn-info" v-on:click="changeCreateGoods(i)">修改</button><button v-on:click="delGoods(i.id)" type="button" class="btn btn-info">删除</button></td>
+						</tr>
+					</table>
+					<div style="display: flex;margin-top: 3px;">
+						<div v-on:click="getCreatGood(--creatGoodPage)" class="btn btn-info" style="text-align: center;width: 68px;margin-left: 20%;">上一页</div>
+						<div v-on:click="getCreatGood(++creatGoodPage)" class="btn btn-info" style="text-align: center;width: 68px;margin-right: 20%;margin-left: auto;">下一页</div>
+					</div>
+				</div>
+				<h2>沟通中</h2>
+				<div style="margin-top: 15px;">
+					<table border="" cellspacing="" cellpadding="">
+						<tr>
+							<th>商品名</th>
+							<th>买家</th>
+							<th>类型</th>
+							<th>详情</th>
+						</tr>
+						<tr v-for="i in shopGoods">
+							<td>{{i.goods.name}}</td>
+							<td>{{i.b.telephone}}</td>
+							<td>{{i.goods.type}}</td>
+							<td><button v-on:click="showDetails(i)" type="button" class="btn btn-info">详情</button></td>
+						</tr>
+					</table>
+					<div style="display: flex;margin-top: 3px;">
+						<div v-on:click="getShopGood(--shopGoodPage)" class="btn btn-info" style="text-align: center;width: 68px;margin-left: 20%;">上一页</div>
+						<div v-on:click="getShopGood(++shopGoodPage)" class="btn btn-info" style="text-align: center;width: 68px;margin-right: 20%;margin-left: auto;">下一页</div>
+					</div>
+				</div>
+				<h2>已售出</h2>
+				<div style="margin-top: 15px;">
+					<table border="" cellspacing="" cellpadding="">
+						<tr>
+							<th>商品名</th>
+							<th>买家</th>
+							<th>类型</th>
+							<th>详情</th>
+						</tr>
+						<tr v-for="i in shopGoods1">
+							<td>{{i.goods.name}}</td>
+							<td>{{i.b.telephone}}</td>
+							<td>{{i.goods.type}}</td>
+							<td><button v-on:click="showDetails(i)" type="button" class="btn btn-info">详情</button></td>
+						</tr>
+					</table>
+					<div style="display: flex;margin-top: 3px;">
+						<div v-on:click="getShopedGood(--shopGoodPage1)" class="btn btn-info" style="text-align: center;width: 68px;margin-left: 20%;">上一页</div>
+						<div v-on:click="getShopedGood(++shopGoodPage1)" class="btn btn-info" style="text-align: center;width: 68px;margin-right: 20%;margin-left: auto;">下一页</div>
+					</div>
+				</div>
+			</div>
+			<div class="personalAdd">
+				<p>发布闲置</p>
+				<div class="personalAddBody">
+					<input type="text" v-model="name" placeholder="商品名" />
+					<input type="text" v-model="priceT" placeholder="价格" />
+					<input type="text" v-model="type" placeholder="类型" />
+					<textarea style="width: 90%;height: 95px;margin-top: 10px;text-align: center;background-color: #5bc0de;border-radius: 9px;border-top: none;border-left: none;border-right: none;border-bottom: solid #536375;margin-left: 5%;color: #536274;"
+							  rows="3" cols="" placeholder="简介" v-model="synopsis"></textarea>
+					<input class="select-file" type="file" name="files" @change="bindFiles($event,image1)" accept=".jpg, .jpeg, .png" multiple placeholder="image1" />
+					<input class="select-file" type="file" name="files" @change="bindFiles($event,image2)" accept=".jpg, .jpeg, .png" multiple placeholder="image2" />
+					<input class="select-file" type="file" name="files" @change="bindFiles($event,image3)" accept=".jpg, .jpeg, .png" multiple placeholder="image3" />
+					<input class="select-file" type="file" name="files" @change="bindFiles($event,image4)" accept=".jpg, .jpeg, .png" multiple placeholder="image4" />
+					<input class="select-file" type="file" name="files" @change="bindFiles($event,image5)" accept=".jpg, .jpeg, .png" multiple placeholder="image5" />
+					<div class="btn btn-info" style="width: 60%;margin-top: 20px;margin-left: 20%;color: #536375;border-radius: 20px;"
+						 v-on:click="upload()">发布</div>
+				</div>
+			</div>
+
+			<div v-if="show_change" class="changeBg">
+				<div class="btn exit" v-on:click="show_change=false">X</div>
+				<p >修改信息</p>
+				<div class="personalAddBody">
+					<input type="text" v-model="showChangeItem.name" placeholder="商品名" />
+					<input type="text" v-model="showChangeItem.price" placeholder="价格" />
+					<input type="text" v-model="showChangeItem.type" placeholder="类型" />
+					<textarea style="width: 90%;height: 95px;margin-top: 10px;text-align: center;background-color: #5bc0de;border-radius: 9px;border-top: none;border-left: none;border-right: none;border-bottom: solid #536375;margin-left: 5%;color: #536274;"
+							  rows="3" cols="" placeholder="简介" v-model="showChangeItem.synopsis"></textarea>
+					<input class="select-file" type="file" name="files" @change="bindFiles($event,image1)" accept=".jpg, .jpeg, .png"
+						   multiple placeholder="image1" />
+					<input class="select-file" type="file" name="files" @change="bindFiles($event,image2)" accept=".jpg, .jpeg, .png"
+						   multiple placeholder="image2" />
+					<input class="select-file" type="file" name="files" @change="bindFiles($event,image3)" accept=".jpg, .jpeg, .png"
+						   multiple placeholder="image3" />
+					<input class="select-file" type="file" name="files" @change="bindFiles($event,image4)" accept=".jpg, .jpeg, .png"
+						   multiple placeholder="image4" />
+					<input class="select-file" type="file" name="files" @change="bindFiles($event,image5)" accept=".jpg, .jpeg, .png"
+						   multiple placeholder="image5" />
+					<div class="btn btn-info" style="width: 60%;margin-top: 20px;margin-left: 20%;color: #536375;border-radius: 20px;"
+						 v-on:click="updateGoods()">提交</div>
+				</div>
+			</div>
+
+			<div v-if="show_personal_change" class="show_personal_change">
+				<div class="btn exit" v-on:click="show_personal_change=false">X</div>
+				<div class="inputInformation" style="">
+					<div style="height: 30px;color: #b5d9ff;width: 160px;border-color: #536375;text-align: center;font-size: 26px;margin: 30px auto -10px auto;">
+						修改个人信息
+					</div>
+					<input type="text" readonly="readonly" style="margin-top: 95px;" :value="u_id" placeholder="学号" />
+					<input type="text" style="margin-top: 19px;" v-model="u_name" placeholder="用户名" />
+					<input type="text" style="margin-top: 19px;" v-model="u_password" placeholder="密码" />
+					<input type="text" style="margin-top: 19px;" v-model="u_telephone" placeholder="电话" />
+					<input type="text" style="margin-top: 19px;" v-model="u_school" placeholder="学校" />
+					<input type="text" style="margin-top: 19px;" v-model="u_college" placeholder="学院" />
+					<input type="text" style="margin-top: 19px;" v-model="u_department" placeholder="系" />
+					<input type="text" style="margin-top: 19px;" v-model="u_major" placeholder="专业" />
+					<div class="btn btn-info" style="height: 30px;color: #536375;width: 40%;margin-left: 30%;border-color: #536375;margin-top: 30px;"
+						 v-on:click="updateUser">提交</div>
+					<div style="width: 100%;height: 120px"></div>
+				</div>
+			</div>
+
+			<div v-if="tf_details" class="PurchaseDetails">
+				<span v-on:click="tf_details=false" class="closee btn">X</span>
+				<h2 style="text-align: center">详情</h2>
+				<div class="cont">
+					<div style="width: 50%;float: left;">
+						<h3 style="text-align: center">买家信息</h3>
+						<li><span>姓名：</span><div class="item-value">{{showAboutItem.b.username}}</div></li>
+						<li><span>电话：</span><div class="item-value">{{showAboutItem.b.telephone}}</div></li>
+						<li><span>学院：</span><div class="item-value">{{showAboutItem.b.college}}</div></li>
+						<li><span>院系：</span><div class="item-value">{{showAboutItem.b.department}}</div></li>
+						<li><span>专业：</span><div class="item-value">{{showAboutItem.b.major}}</div></li>
+					</div>
+					<div style="width: 50%;float: left;">
+						<h3 style="text-align: center">商品信息</h3>
+						<li><span>名称：</span><div class="item-value">{{showAboutItem.goods.name}}</div></li>
+						<li><span>时间：</span><div class="item-value">{{showAboutItem.goods.creatTime}}</div></li>
+						<li><span>价格：</span><div class="item-value">{{showAboutItem.goods.price}}</div></li>
+						<li><span>类型：</span><div class="item-value">{{showAboutItem.goods.type}}</div></li>
+						<li><span>简介：</span><div class="item-value">{{showAboutItem.goods.synopsis}}</div></li>
+					</div>
+				</div>
+				<div>
+					<img :src="showAboutItem.goods.image1" >
+					<img :src="showAboutItem.goods.image2" >
+					<img :src="showAboutItem.goods.image3" >
+					<img :src="showAboutItem.goods.image4" >
+					<img :src="showAboutItem.goods.image5" >
+				</div>
+				<div v-if="showAboutItem.goods.state !== 4" v-on:click="SoldOK(showAboutItem.goods.id)" class="btn btn-primary want">确认售出</div>
+			</div>
+		</div>
+	</template>
+	<template id="myShopTem">
+		<div class="showPersonal" style="background-color: #6388bf;border-radius: 10px;">
+			<h2>购买中</h2>
+			<div>
+				<table border="" cellspacing="" cellpadding="">
+					<tr>
+						<th>商品名</th>
+						<th>价格</th>
+						<th>类型</th>
+						<th>联系方式</th>
+						<th>操作</th>
+					</tr>
+					<tr v-for="i in myShopIng">
+						<td>{{i.goods.name}}</td>
+						<td>{{i.goods.price}}</td>
+						<td>{{i.goods.type}}</td>
+						<td>{{i.a.telephone}}</td>
+						<td><button v-on:click="delShoping(i.goods.id)" type="button" class="btn btn-info">取消</button></td>
+					</tr>
+				</table>
+				<div style="display: flex;margin-top: 3px;">
+					<div v-on:click="getShoping(--shopingPage)" class="btn btn-info" style="text-align: center;width: 68px;margin-left: 20%;">上一页</div>
+					<div v-on:click="getShoping(++shopingPage)" class="btn btn-info" style="text-align: center;width: 68px;margin-right: 20%;margin-left: auto;">下一页</div>
+				</div>
+			</div>
+			<h2>购买完成</h2>
+			<div style="margin-top: 15px;">
+				<table border="" cellspacing="" cellpadding="">
+					<tr>
+						<th>商品名</th>
+						<th>卖家</th>
+						<th>类型</th>
+						<th>详情</th>
+					</tr>
+					<tr v-for="i in shopGoods">
+						<td>{{i.goods.name}}</td>
+						<td>{{i.b.telephone}}</td>
+						<td>{{i.goods.type}}</td>
+						<td><button type="button" v-on:click="showDetails(i)" class="btn btn-info">详情</button></td>
+					</tr>
+				</table>
+				<div style="display: flex;margin-top: 3px;">
+					<div class="btn btn-info" style="text-align: center;width: 68px;margin-left: 20%;">上一页</div>
+					<div class="btn btn-info" style="text-align: center;width: 68px;margin-right: 20%;margin-left: auto;">下一页</div>
+				</div>
+			</div>
+			<div v-if="tf_details" class="PurchaseDetails">
+				<span v-on:click="tf_details=false" class="closee btn">X</span>
+				<h2>购买详情</h2>
+				<div class="cont">
+					<div style="width: 50%;float: left;">
+						<h3 style="text-align: center">商品信息</h3>
+						<li><span>名称：</span><div class="item-value">{{showAboutItem.goods.name}}</div></li>
+						<li><span>时间：</span><div class="item-value">{{showAboutItem.goods.creatTime}}</div></li>
+						<li><span>价格：</span><div class="item-value">{{showAboutItem.goods.price}}</div></li>
+						<li><span>类型：</span><div class="item-value">{{showAboutItem.goods.type}}</div></li>
+						<li><span>简介：</span><div class="item-value">{{showAboutItem.goods.synopsis}}</div></li>
+					</div>
+					<div style="width: 50%;float: left;">
+						<h3 style="text-align: center">卖家信息</h3>
+						<li><span>姓名：</span><div class="item-value">{{showAboutItem.a.username}}</div></li>
+						<li><span>电话：</span><div class="item-value">{{showAboutItem.a.telephone}}</div></li>
+						<li><span>学院：</span><div class="item-value">{{showAboutItem.a.college}}</div></li>
+						<li><span>院系：</span><div class="item-value">{{showAboutItem.a.department}}</div></li>
+						<li><span>专业：</span><div class="item-value">{{showAboutItem.a.major}}</div></li>
+					</div>
+					<div>
+						<img :src="showAboutItem.goods.image1" >
+						<img :src="showAboutItem.goods.image2" >
+						<img :src="showAboutItem.goods.image3" >
+						<img :src="showAboutItem.goods.image4" >
+						<img :src="showAboutItem.goods.image5" >
+					</div>
+				</div>
+			</div>
+		</div>
+	</template>
+	<script>
+		var user=null;
+		const shop = { template: shopTem,
+			data: function () {
+				return{
+					tf_show:false,
+					allType:["A" , "B"],
+					goodsList:[],
+					showItem:{"id":26835913,"uId":2,"state":1,"name":"1","creatTime":"2020-09-06","price":"1","synopsis":"111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111","type":"1","image1":"images/e8270584-2272-4f10-9659-d568a1b8e827favicon.png","image2":"images/31d0ab8f-d520-4edf-a33f-82376de03065favicon.png","image3":"images/e33ba5b9-4850-470f-b29e-adeae60acd24police_beian.png","image4":"images/8ffab7aa-6ef2-42d5-82f8-9ddd03ed65bdfavicon.png","image5":"images/7b78272b-0960-4fb2-90f9-94dd9743768fdefault.png"},
+				}
+			},
+			methods:{
+				showGoodsItem(i){
+					this.showItem=i;
+					this.tf_show=true;
+				},
+				getGoodsList(type){
+					this.$http.get("/goods/getGoodsList?type="+type,{},{emulateJSON:true}).then(function(res) {
+						this.goodsList=res.body;
+					}, function() {
+						console.log("ERR -1");
+					})
+				},
+				buyGoods(){
+					if (user==null){
+						alert("请登录")
+						return;
+					}
+					if (this.showItem.uId===user.id){
+						alert("不能购买i自己发布的@！")
+						return;
+					};
+					let formData = new FormData();
+					formData.append("uId",user.id);
+					formData.append("gId",this.showItem.id);
+					this.$http.post("/shop/buyGoods",
+							formData, {
+								headers: {
+									'Content-Type': 'multipart/form-data'
+								}
+							}).then(function() {
+						alert("购买成功");
+					}, function() {
+						alert("购买失败");
+					})
+
+				}
+			},
+			beforeMount(){
+				this.$http.get("/goods/getAllGoodsType",{},{emulateJSON:true}).then(function(res) {
+					this.allType=res.body;
+				}, function() {
+					console.log("ERR -1");
+				})
+				this.getGoodsList('');
+			}
+		}
+		const personal = {
+			template: personalTem,
+			data: function() {
+				return {
+					name: '',
+					priceT: '',
+					synopsis: '',
+					type: '',
+					image1: [],
+					image2: [],
+					image3: [],
+					image4: [],
+					image5: [],
+					show_change: false,
+					show_personal_change: false,
+
+					u_id:user.id,
+					u_name:'',
+					u_password:'',
+					u_school:'',
+					u_college:'',
+					u_department:'',
+					u_major:'',
+					u_telephone:'',
+
+					createGoods:[],
+					showChangeItem:null,
+					creatGoodPage:1,
+
+					shopGoods:[],
+					showAboutItem:null,
+					shopGoodPage:1,
+
+					shopGoods1:[],
+					shopGoodPage1:1,
+
+
+					tf_details:false
+
+				}
+			},
+			methods: {
+				showDetails(i){
+					this.tf_details=true;
+					this.showAboutItem=i;
+					console.log(i);
+				},
+				changeCreateGoods(i){
+					this.showChangeItem=i;
+					this.show_change=true;
+				},
+				bindFiles(event, image) {
+					console.log(image);
+					//获取文件
+					let files = event.target.files;
+					//将文件push到upload_files
+					for (let i = 0; i < files.length; i++) {
+						image.push(files[i]);
+					}
+				},
+				updateGoods() {
+					let formData = new FormData();
+					for (let i = 0; i < this.image1.length; i++) {
+						formData.append('image1', this.image1[i]);
+					}
+					for (let i = 0; i < this.image2.length; i++) {
+						formData.append('image2', this.image2[i]);
+					}
+					for (let i = 0; i < this.image3.length; i++) {
+						formData.append('image3', this.image3[i]);
+					}
+					for (let i = 0; i < this.image4.length; i++) {
+						formData.append('image4', this.image4[i]);
+					}
+					for (let i = 0; i < this.image5.length; i++) {
+						formData.append('image5', this.image5[i]);
+					}
+					console.log(user);
+					formData.append('name', this.showChangeItem.name);
+					formData.append('id', this.showChangeItem.id);
+					formData.append('price', this.showChangeItem.price);
+					formData.append('synopsis', this.showChangeItem.synopsis);
+					formData.append('type', this.showChangeItem.type);
+					this.$http.post("/goods/updateGoods",
+							formData, {
+								headers: {
+									'Content-Type': 'multipart/form-data'
+								}
+							}).then(function() {
+						alert("文件上传成功");
+					}, function() {
+						alert("文件上传失败");
+					})
+				},
+				upload() {
+					let formData = new FormData();
+					for (let i = 0; i < this.image1.length; i++) {
+						formData.append('image1', this.image1[i]);
+					}
+					for (let i = 0; i < this.image2.length; i++) {
+						formData.append('image2', this.image2[i]);
+					}
+					for (let i = 0; i < this.image3.length; i++) {
+						formData.append('image3', this.image3[i]);
+					}
+					for (let i = 0; i < this.image4.length; i++) {
+						formData.append('image4', this.image4[i]);
+					}
+					for (let i = 0; i < this.image5.length; i++) {
+						formData.append('image5', this.image5[i]);
+					}
+					console.log(user);
+					formData.append('name', this.name);
+					formData.append('uId', user.id);
+					formData.append('price', this.priceT);
+					formData.append('synopsis', this.synopsis);
+					formData.append('type', this.type);
+					this.$http.post("/goods/addGoods",
+							formData, {
+								headers: {
+									'Content-Type': 'multipart/form-data'
+								}
+							}).then(function() {
+						alert("文件上传成功");
+					}, function() {
+						alert("文件上传失败");
+					})
+				},
+				updateUser(){
+					console.log(user.id)
+					console.log(this.u_name);
+					console.log(this.u_password);
+					console.log(this.u_school);
+					console.log(this.u_college);
+					console.log(this.u_department);
+					console.log(this.u_major);
+					console.log(this.u_telephone);
+
+					this.$http.post('/user/update',{
+								id:user.id,name:this.u_name,pwd:this.u_password,
+								school:this.u_school,
+								college:this.u_college,department:this.u_department,
+								major:this.u_major,telephone:this.u_telephone},
+							{emulateJSON:true}).then(function(res){
+						if ( "-1" != res.body){
+							console.log("OK");
+							console.log(res.bodyText);
+						}else {
+							console.log("ERR -1");
+						}
+					},function(res){
+						console.log(res.status);
+					});
+				},
+				getShopGood(page){
+					console.log(page)
+					var tf=true;
+					if (page<1){
+						tf=false;
+						this.shopGoodPage=1;
+						page=1;
+					}
+					if (this.shopGoods[0]==null){
+						tf=false;
+					}
+					this.$http.get("/shop/getUserShopedGoodsList?page="+page+"&uId="+user.id+"&state=2",{},{emulateJSON:true}).then(function(res) {
+						console.log(tf);
+						if(res.body.length<1){
+                            return;
+                        }
+						if (tf&&res.body.length>0&&this.shopGoods[0].goods.id===res.body[0].goods.id){
+							this.shopGoodPage--;
+						}
+						this.shopGoods=res.body;
+						console.log(res.body);
+						console.log(this.shopGoods)
+					}, function() {
+						console.log("ERR -1");
+					})
+				},
+				getShopedGood(page){
+					console.log(page)
+					var tf=true;
+					if (page<1){
+						tf=false;
+						this.shopGoodPage1=1;
+						page=1;
+					}
+					if (this.shopGoods1[0]==null){
+						tf=false;
+					}
+					this.$http.get("/shop/getUserShopedGoodsList?page="+page+"&uId="+user.id+"&state=4",{},{emulateJSON:true}).then(function(res) {
+						console.log(tf);
+						if(res.body.length<1){
+							return;
+						}
+						if (tf&&res.body.length>0&&this.shopGoods1[0].goods.id===res.body[0].goods.id){
+							this.shopGoodPage1--;
+						}
+						this.shopGoods1=res.body;
+						console.log(res.body);
+						console.log(this.shopGoods1)
+					}, function() {
+						console.log("ERR -1");
+					})
+				},
+				getCreatGood(page){
+					console.log(page)
+					var tf=true;
+					if (page<1){
+						tf=false;
+						this.creatGoodPage=1;
+						page=1;
+					}
+					if (this.createGoods[0]==null){
+						tf=false;
+					}
+					this.$http.get("/goods/getUserCreatGoodsList?page="+page+"&uId="+user.id+"&state=1",{},{emulateJSON:true}).then(function(res) {
+						console.log(tf);
+						if (tf&&res.body.length>0&&this.createGoods[0].id===res.body[0].id){
+							this.creatGoodPage--;
+						}
+						this.createGoods=res.body;
+						console.log(res.body);
+						console.log(this.createGoods)
+					}, function() {
+						console.log("ERR -1");
+					})
+				},
+				delGoods(id){
+					this.$http.post('/goods/delGoods',{
+								id:id},
+							{emulateJSON:true}).then(function(res){
+						if ( "-1" != res.body){
+							console.log("OK");
+							console.log(res.bodyText);
+							alert("OK")
+						}else {
+							console.log("ERR -1");
+							alert("NO")
+						}
+					},function(res){
+						console.log(res.status);
+					});
+				},
+				SoldOK(gid){
+					console.log(this.showAboutItem.goods.state);
+					this.$http.post('/shop/soldOK',{id:gid},{emulateJSON:true}).then(function(res){
+						alert(res.bodyText)
+						console.log(res)
+						this.showAboutItem.goods.state=4;
+					},function(res){
+						console.log(res.status);
+					});
+				}
+			},
+			beforeMount() {
+				this.getCreatGood(this.creatGoodPage);
+				this.getShopGood(this.shopGoodPage);
+				this.getShopedGood(1);
+			}
+		}
+		const myShop = {
+			template: myShopTem,
+			data: function () {
+				return{
+					tf_details:false,
+					shopingPage:1,
+					myShopIng:[],
+
+
+
+					shopGoods:[],
+					showAboutItem:null,
+					shopGoodPage:1,
+				}
+			},
+			methods:{
+				showDetails(i){
+					this.tf_details=true;
+					this.showAboutItem=i;
+					console.log(i);
+				},
+				getShoping(page){
+					console.log(page)
+					var tf=true;
+					if (page<1){
+						tf=false;
+						this.shopingPage=1;
+						page=1;
+					}
+					this.$http.get("/shop/getMyShoping?page="+page+"&uId="+user.id+"&state=2",{},{emulateJSON:true}).then(function(res) {
+						console.log(tf);
+						if(res.body.length<1){
+							return;
+						}
+						if (this.myShopIng[0]==null){
+							tf=false;
+						}
+						if (tf&&res.body.length>0&&this.myShopIng[0].goods.id===res.body[0].goods.id){
+							this.shopingPage--;
+						}
+						this.myShopIng=res.body;
+						console.log(res.body);
+						console.log(this.myShopIng)
+					}, function() {
+						console.log("ERR -1");
+					})
+				},
+				delShoping(id){
+					this.$http.post('/shop/delShoping',{delId:id},{emulateJSON:true}).then(function(res){
+						if ( "-1" != res.body){
+							alert("成功取消")
+						}else {
+							console.log("ERR -1");
+							alert("ERR")
+						}
+					},function(res){
+						console.log(res.status);
+						alert("ERR")
+					});
+					this.myShopIng=[];
+				},
+				getShopedGood(page){
+					console.log(page)
+					var tf=true;
+					if (page<1){
+						tf=false;
+						this.shopGoodPage=1;
+						page=1;
+					}
+					if (this.shopGoods[0]==null){
+						tf=false;
+					}
+					this.$http.get("/shop/getUserBuyedGoodsList?page="+page+"&uId="+user.id+"&state=4",{},{emulateJSON:true}).then(function(res) {
+						console.log(tf);
+						if(res.body.length<1){
+							return;
+						}
+						if (tf&&res.body.length>0&&this.shopGoods[0].goods.id===res.body[0].goods.id){
+							this.shopGoodPage--;
+						}
+						this.shopGoods=res.body;
+						console.log(res.body);
+						console.log(this.shopGoods)
+					}, function() {
+						console.log("ERR -1");
+					})
+				},
+			},
+			beforeMount(){
+				this.getShoping(1);
+				this.getShopedGood(1);
+			}
+		}
+		const register = {
+			template: registerTem,
+			data: function () {
+				return{
+					user:'',
+					name:'',
+					password:'',
+					school:'',
+					college:'',
+					department:'',
+					major:'',
+					telephone:''
+				}
+			},
+			methods:{
+				registerClick(){
+					console.log("registerClick");
+					console.log(this.user);
+					console.log(this.name);
+					console.log(this.password);
+					console.log(this.school);
+					console.log(this.college);
+					console.log(this.department);
+					console.log(this.major);
+					console.log(this.telephone);
+					this.$http.post('/user/register',{
+								name:this.name,pwd:this.password,
+								user:this.user,school:this.school,
+								college:this.college,department:this.department,
+								major:this.major,telephone:this.telephone},
+							{emulateJSON:true}).then(function(res){
+						if ( "-1" != res.body){
+							console.log(res.body);
+							main.$data.show_user=true;
+							this.$router.push('/SignIn')
+						}else {
+							console.log("ERR -1");
+						}
+					},function(res){
+						console.log(res.status);
+					});
+				}
+			}
+		 }
+		const SignIn = { 
+			template: SignInTem,
+			data: function () {
+				return{
+					user:'',
+					password:''
+				}
+			},
+			methods:{
+				SigninClick(){
+					console.log(user)
+					console.log("SigninClick");
+					console.log(this.user);
+					console.log(this.password);
+					this.$http.post('/user/SignIn',{user:this.user,pwd:this.password},{emulateJSON:true}).then(function(res){
+						if ( "-1" != res.body){
+							console.log(res.body);
+							user=res.body;
+							console.log(user)
+							main.$data.show_user=true;
+							this.$router.push('/shop')
+						}else {
+							console.log("ERR -1");
+						}
+					},function(res){
+						console.log(res.status);
+					});
+				}
+			}
+		}
+		const routes = [
+		  { path: '/shop', component: shop },
+		  { path: '/personal', component: personal },
+		  { path: '/register', component: register },
+		  { path: '/SignIn', component: SignIn },
+		  { path: '/myShop', component: myShop }
+		];
+		const router = new VueRouter({
+			routes // (缩写) 相当于 routes: routes
+		});
+		var main=new Vue({
+			el:'#app',
+			data:{
+				meg:'Hello',
+				show_user:false,
+				user:'user_text'
+			},
+			methods:{
+				exit(){
+					this.$router.push('/SignIn')
+					user=null;
+					this.show_user=false;
+				}
+			},
+			router
+		})
+	</script>
+</html>
